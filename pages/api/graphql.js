@@ -8,7 +8,7 @@ class TmdbAPI extends RESTDataSource {
         this.baseURL = 'https://api.themoviedb.org/3/';
     }
     willSendRequest(request) {
-        request.params.set('api_key', process.env.API_KEY);
+        request.params.set('api_key', 'cdbe4fd0e38a206f5dd681b2d580f810');
     }
     async getTrendingShows(){
         console.log('TEST')
