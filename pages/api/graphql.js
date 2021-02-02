@@ -8,7 +8,7 @@ class TmdbAPI extends RESTDataSource {
         this.baseURL = 'https://api.themoviedb.org/3/';
     }
     willSendRequest(request) {
-        request.params.set('api_key', 'cdbe4fd0e38a206f5dd681b2d580f810');
+        request.params.set('api_key', process.env.API_KEY);
     }
     async getTrendingShows(){
         console.log('TEST')
@@ -25,10 +25,12 @@ class TmdbAPI extends RESTDataSource {
     }
     async getSeason(id, season_number){
         const result = await this.get(`tv/${id}/season/${season_number}`);
+        result.showId = id
         return result
     }
     async getEpisode(id, season_number, episode_number){
         const result = await this.get(`tv/${id}/season/${season_number}/episode/${episode_number}`);
+        result.showId = id
         return result;
     }
 }
@@ -92,11 +94,11 @@ const resolvers = {
         show: async (_, {id}, {dataSources}) => {
             return dataSources.tmdbAPI.getShowDetail(id)
         },
-        season: async(_, {id, season_number}, {dataSources}) => {
-            return dataSources.tmdbAPI.getSeason(id, season_number)
+        season: async(_, {showId, season_number}, {dataSources}) => {
+            return dataSources.tmdbAPI.getSeason(showId, season_number)
         },
-        episode: async(_, {id, season_number, episode_number}, {dataSources}) => {
-            return dataSources.tmdbAPI.getEpisode(id, season_number, episode_number)
+        episode: async(_, {showId, season_number, episode_number}, {dataSources}) => {
+            return dataSources.tmdbAPI.getEpisode(showId, season_number, episode_number)
         },
     },
     Show: {
@@ -125,7 +127,8 @@ const apolloServer = new ApolloServer({
     resolvers,
     dataSources: () => ({
         tmdbAPI: new TmdbAPI(),
-    })
+    }),
+    tracing: process.env.NODE_ENV !== 'production'
 });
 
 export const config = {
