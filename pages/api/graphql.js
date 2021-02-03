@@ -153,6 +153,9 @@ const resolvers = {
         },
         similar: async(parent, _, {dataSources}) => {
             return (await dataSources.tmdbAPI.getShowDetail(parent.id)).similar.results
+        },
+        status: async(parent, _, {dataSources}) => {
+            return (await dataSources.tmdbAPI.getShowDetail(parent.id)).status;
         }
     },
     Season: {
