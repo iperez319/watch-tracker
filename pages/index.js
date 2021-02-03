@@ -1,65 +1,67 @@
 import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import {Button, ButtonBase, Container, Typography} from "@material-ui/core";
+import Image from 'next/image';
+import axios from 'axios';
+import PosterList from "../components/PosterList";
+import {initializeApollo} from "../lib/apolloClient";
+import {gql, useQuery} from "@apollo/client";
 
-export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+const GET_TRENDING_SHOWS = gql`
+    query getTrendingShows {
+        trendingShows {
+            id
+            poster_path
+            vote_average
+            name
+        }
+    }
+`
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+const GET_POPULAR_SHOWS = gql`
+    query getPopularShows {
+        popularShows {
+            id
+            poster_path
+            vote_average
+            name
+        }
+    }
+`
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
+export async function getStaticProps(context){
+    const apolloClient = initializeApollo();
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+    await apolloClient.query({
+        query: GET_TRENDING_SHOWS
+    })
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+    await apolloClient.query({
+        query: GET_POPULAR_SHOWS
+    })
 
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
+    return {
+        props: {
+            initialApolloState: apolloClient.cache.extract()
+        },
+        revalidate: 450,
+    }
 }
+
+export default function Home(props) {
+
+    const {data: {trendingShows}} = useQuery(GET_TRENDING_SHOWS);
+    const {data: {popularShows}} = useQuery(GET_POPULAR_SHOWS);
+    return (
+        <div>
+            <Head>
+                <title>Create Next App</title>
+                <link rel="icon" href="/favicon.ico" />
+            </Head>
+            <Container style={{padding: '10px'}}>
+                <PosterList title={"Popular Shows"} shows={popularShows} />
+                <PosterList title={'Trending Shows'} shows={trendingShows} />
+            </Container>
+        </div>
+    )
+}
+

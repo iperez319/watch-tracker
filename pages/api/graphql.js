@@ -20,7 +20,7 @@ class TmdbAPI extends RESTDataSource {
         return result.results;
     }
     async getShowDetail(id) {
-        const result = await this.get(`tv/${id}`);
+        const result = await this.get(`tv/${id}`, {'append_to_response': 'credits,watch/providers,similar'});
         return result
     }
     async getSeason(id, season_number){
@@ -37,6 +37,31 @@ class TmdbAPI extends RESTDataSource {
 
 const typeDefs = gql`
     
+    type Creator {
+        id: ID
+        name: String
+        profile_path: String
+    }
+    
+    type Actor {
+        id: ID
+        known_for_deparment: String
+        name: String
+        character: String
+        profile_path: String
+    }
+    
+    type Provider {
+        provider_name: String
+        provider_id: ID
+        logo_path: String
+    }
+    
+    type ProviderList {
+        buy: [Provider]
+        flatrate: [Provider]
+    }
+    
     type Show {
         id: ID
         name: String
@@ -50,6 +75,12 @@ const typeDefs = gql`
         tagline: String
         popularity: Float
         seasons: [Season]
+        created_by: [Creator]
+        cast: [Actor]
+        providers: ProviderList
+        overview: String,
+        similar: [Show]
+        first_air_date: String
     }
     
     type Season {
@@ -113,6 +144,15 @@ const resolvers = {
         },
         seasons: async(parent, _, {dataSources}) => {
             return (await dataSources.tmdbAPI.getShowDetail(parent.id)).seasons.map(item => ({...item, showId: parent.id}));
+        },
+        cast: async(parent, _, {dataSources}) => {
+            return (await dataSources.tmdbAPI.getShowDetail(parent.id)).credits.cast.filter(item => item.known_for_department === 'Acting') ?? [];
+        },
+        providers: async(parent, _, {dataSources}) => {
+            return (await dataSources.tmdbAPI.getShowDetail(parent.id))['watch/providers'].results.US;
+        },
+        similar: async(parent, _, {dataSources}) => {
+            return (await dataSources.tmdbAPI.getShowDetail(parent.id)).similar.results
         }
     },
     Season: {
