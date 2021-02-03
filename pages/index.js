@@ -28,7 +28,7 @@ const GET_POPULAR_SHOWS = gql`
     }
 `
 
-export async function getServerSideProps(context){
+export async function getStaticProps(context){
     const apolloClient = initializeApollo();
 
     await apolloClient.query({
@@ -42,28 +42,10 @@ export async function getServerSideProps(context){
     return {
         props: {
             initialApolloState: apolloClient.cache.extract()
-        }
+        },
+        revalidate: 450,
     }
 }
-
-// export async function getStaticProps(context){
-//     const apolloClient = initializeApollo();
-//
-//     await apolloClient.query({
-//         query: GET_TRENDING_SHOWS
-//     })
-//
-//     await apolloClient.query({
-//         query: GET_POPULAR_SHOWS
-//     })
-//
-//     return {
-//         props: {
-//             initialApolloState: apolloClient.cache.extract()
-//         },
-//         revalidate: 450,
-//     }
-// }
 
 export default function Home(props) {
 

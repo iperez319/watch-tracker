@@ -70,7 +70,7 @@ const GET_POPULAR_SHOWS = gql`
 `
 
 
-export async function getServerSideProps(context){
+export async function getStaticProps(context){
 
     const {id} = context.params;
 
@@ -84,45 +84,27 @@ export async function getServerSideProps(context){
     return {
         props: {
             initialApolloState: apolloClient.cache.extract(),
-        }
+        },
+        revalidate: 450,
     }
 }
 
-// export async function getStaticProps(context){
-//
-//     const {id} = context.params;
-//
-//     const apolloClient = initializeApollo();
-//
-//     await apolloClient.query({
-//         query: GET_SHOW_DETAILS,
-//         variables: {id}
-//     })
-//
-//     return {
-//         props: {
-//             initialApolloState: apolloClient.cache.extract(),
-//         },
-//         revalidate: 450,
-//     }
-// }
+export async function getStaticPaths(){
 
-// export async function getStaticPaths(){
-//
-//     const apolloClient = initializeApollo();
-//     const trendingShowsPromise = apolloClient.query({
-//         query: GET_TRENDING_SHOWS
-//     })
-//     const popularShowsPromise = await apolloClient.query({
-//         query: GET_POPULAR_SHOWS,
-//     })
-//     const [{data: {trendingShows}}, {data: {popularShows}}] = await Promise.all([trendingShowsPromise, popularShowsPromise])
-//     console.log(trendingShows)
-//     return {
-//         paths: [...trendingShows, ...popularShows].map(item => ({params: {id: item.id}})),
-//         fallback: true,
-//     }
-// }
+    const apolloClient = initializeApollo();
+    const trendingShowsPromise = apolloClient.query({
+        query: GET_TRENDING_SHOWS
+    })
+    const popularShowsPromise = await apolloClient.query({
+        query: GET_POPULAR_SHOWS,
+    })
+    const [{data: {trendingShows}}, {data: {popularShows}}] = await Promise.all([trendingShowsPromise, popularShowsPromise])
+    console.log(trendingShows)
+    return {
+        paths: [...trendingShows, ...popularShows].map(item => ({params: {id: item.id}})),
+        fallback: true,
+    }
+}
 
 const useStyles = makeStyles(theme => ({
     posterImage: {
